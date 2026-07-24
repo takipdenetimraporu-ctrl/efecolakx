@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Takip Denetim Raporu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --paper: #FAF6EF;
+    --card: #FFFFFF;
+    --card-soft: #F3ECDF;
+    --ink: #2B2438;
+    --ink-soft: #5C5468;
+    --ink-faded: #948C9C;
+    --rule: #E9E1D2;
+    --brand: #A6335A;
+    --brand-dark: #832A48;
+    --brand-soft: #F7DEE6;
+    --good: #3E8F63;
+    --good-soft: #DFF0E6;
+    --flag: #CC5B3C;
+    --flag-soft: #FBE5DA;
+    --shadow: 0 1px 2px rgba(43,36,56,0.04), 0 8px 24px rgba(43,36,56,0.05);
+    --shadow-sm: 0 1px 2px rgba(43,36,56,0.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:0 0 80px 0;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{
+    max-width:860px;
+    margin:0 auto;
+    padding:56px 28px 0 28px;
+  }
+  a{color:var(--brand);}
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--brand-dark);
+    background:var(--brand-soft);
+    border-radius:999px;
+    padding:6px 14px;
+    margin-bottom:18px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--brand); flex-shrink:0;}
+  header.letterhead{
+    margin-bottom:22px;
+  }
+  .title-block h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(32px, 5.2vw, 46px);
+    letter-spacing:-0.01em;
+    line-height:1.08;
+    margin:0 0 12px 0;
+    color:var(--ink);
+  }
+  .title-block .sub{
+    font-size:15px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:560px;
+  }
+  .credit{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    font-size:13px;
+    color:var(--ink-faded);
+    padding:14px 0 0 0;
+    margin:18px 0 30px 0;
+    border-top:1px solid var(--rule);
+  }
+  .credit-name b{color:var(--ink-soft); font-weight:600;}
+  .credit-sep{color:var(--rule);}
+  .credit-ig{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:var(--ink-soft);
+    font-weight:600;
+    text-decoration:none;
+    transition:color .15s ease;
+  }
+  .credit-ig svg{flex-shrink:0;}
+  .credit-ig:hover{color:var(--brand);}
+
+  /* ---------- trust box ---------- */
+  .trust-box{
+    border-radius:16px;
+    background:var(--card);
+    box-shadow:var(--shadow);
+    border-left:4px solid var(--brand);
+    padding:28px 30px;
+    margin-bottom:32px;
+  }
+  .trust-box h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:-0.005em;
+    margin:0 0 14px 0;
+    color:var(--ink);
+  }
+  .trust-box p{
+    font-size:14.5px;
+    line-height:1.65;
+    color:var(--ink-soft);
+    margin:0 0 12px 0;
+    max-width:680px;
+  }
+  .trust-box p.faded{color:var(--ink-faded);}
+  .trust-list{
+    list-style:none;
+    margin:16px 0 4px 0;
+    padding:0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 20px;
+  }
+  @media (max-width:560px){ .trust-list{grid-template-columns:1fr;} }
+  .trust-list li{
+    font-size:13.5px;
+    color:var(--ink);
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    line-height:1.4;
+  }
+  .trust-list li::before{
+    content:"✓";
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:var(--good-soft);
+    color:var(--good);
+    font-size:11px;
+    font-weight:700;
+    flex-shrink:0;
+    margin-top:1px;
+  }
+  .trust-box .closing{
+    font-size:13px;
+    color:var(--ink-faded);
+    line-height:1.65;
+    margin-top:18px;
+    margin-bottom:0;
+    border-top:1px solid var(--rule);
+    padding-top:16px;
+  }
+
+  /* ---------- wizard ---------- */
+  .wizard{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    margin-bottom:18px;
+  }
+  .step-card{
+    display:flex;
+    gap:18px;
+    border-radius:16px;
+    background:var(--card);
+    box-shadow:var(--shadow);
+    padding:26px;
+  }
+  @media (max-width:560px){ .step-card{padding:20px; gap:14px;} }
+  .step-num{
+    flex-shrink:0;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:var(--brand);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+  }
+  .step-body{flex:1; min-width:0;}
+  .step-title{
+    font-family:'Fraunces', serif;
+    font-size:18px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .step-desc{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin-bottom:16px;
+  }
+  .step-btn{
+    display:inline-block;
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:13px 22px;
+    background:var(--brand);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    text-decoration:none;
+    text-align:center;
+    transition:background .15s ease;
+  }
+  .step-btn:hover{background:var(--brand-dark); color:#fff;}
+  .step-note{
+    font-size:12.5px;
+    color:var(--ink-faded);
+    line-height:1.75;
+    margin-top:16px;
+    background:var(--card-soft);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .step-note b{color:var(--ink-soft);}
+  .dz-main-btn{width:100%;}
+  .dz-sub-below{
+    font-size:11.5px;
+    color:var(--ink-faded);
+    margin-top:10px;
+    text-align:center;
+  }
+
+  /* ---------- dropzone ---------- */
+  .dropzone{
+    border:2px dashed var(--rule);
+    border-radius:14px;
+    padding:38px 20px;
+    text-align:center;
+    cursor:pointer;
+    background:var(--card-soft);
+    transition:border-color .15s ease, background .15s ease;
+    margin-bottom:10px;
+    outline:none;
+  }
+  .dropzone:focus-visible{border-color:var(--brand);}
+  .dropzone.dragover{border-color:var(--good); background:var(--good-soft);}
+  .dropzone.done{border-style:solid; border-color:var(--good); background:var(--good-soft);}
+  .dropzone.dropzone-btn{
+    background:var(--brand);
+    border-style:solid;
+    border-color:var(--brand);
+  }
+  .dropzone.dropzone-btn.dragover{background:var(--good); border-color:var(--good);}
+  .dropzone.dropzone-btn.done{background:var(--good); border-color:var(--good);}
+  .dz-btn-label{
+    font-family:'Fraunces', serif;
+    font-size:17px;
+    font-weight:600;
+    color:#fff;
+  }
+  .dropzone.dropzone-btn .dz-sub{color:rgba(255,255,255,0.75);}
+  .dz-sub{font-size:12.5px; color:var(--ink-faded); margin-top:8px; max-width:420px; margin-left:auto; margin-right:auto;}
+  .dz-status{
+    font-size:12.5px;
+    color:var(--ink-faded);
+    min-height:18px;
+    margin-bottom:22px;
+    text-align:center;
+  }
+  .dz-status.error{color:var(--flag);}
+  .dz-status.ok{color:var(--good);}
+
+  /* ---------- manual toggle ---------- */
+  .manual-toggle{
+    margin-bottom:36px;
+    font-size:13px;
+    border-radius:14px;
+    background:var(--card);
+    box-shadow:var(--shadow-sm);
+    overflow:hidden;
+  }
+  .manual-toggle summary{
+    cursor:pointer;
+    padding:14px 18px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+  .manual-toggle[open] summary{border-bottom:1px solid var(--rule);}
+  .manual-toggle .inner{padding:20px;}
+
+  .upload-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:20px;
+  }
+  @media (max-width:640px){ .upload-grid{grid-template-columns:1fr;} }
+
+  .field{
+    border:2px dashed var(--rule);
+    border-radius:12px;
+    padding:20px;
+    text-align:center;
+    background:var(--card-soft);
+    transition:border-color .15s ease, background .15s ease;
+    position:relative;
+  }
+  .field.filled{border-style:solid; border-color:var(--good); background:var(--good-soft);}
+  .field .label{
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color:var(--ink-faded);
+    display:block;
+    margin-bottom:10px;
+  }
+  .field .filecount{
+    font-size:12px;
+    color:var(--good);
+    margin-top:8px;
+    min-height:16px;
+  }
+  .field input[type=file]{display:none;}
+  .field .btn{
+    display:inline-block;
+    font-family:'Inter', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:9px 18px;
+    border-radius:8px;
+    border:1px solid var(--ink);
+    cursor:pointer;
+    background:var(--card);
+    color:var(--ink);
+  }
+  .field .btn:hover{background:var(--ink); color:var(--card);}
+
+  .run-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  button#runBtn{
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:13px 26px;
+    background:var(--brand);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  button#runBtn:disabled{background:var(--rule); color:var(--ink-faded); cursor:not-allowed;}
+  button#runBtn:not(:disabled):hover{background:var(--brand-dark);}
+  .status-msg{font-size:12.5px; color:var(--ink-faded);}
+  .status-msg.error{color:var(--flag);}
+
+  /* ---------- results ---------- */
+  .results{display:none; margin-top:40px;}
+  .results.show{display:block;}
+
+  .summary-strip{
+    display:flex;
+    gap:14px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .summary-cell{
+    flex:1;
+    min-width:140px;
+    border-radius:14px;
+    background:var(--card);
+    box-shadow:var(--shadow-sm);
+    padding:18px 20px;
+    border-top:3px solid var(--rule);
+  }
+  .summary-cell .num{
+    font-family:'Fraunces', serif;
+    font-size:32px;
+    font-weight:600;
+    line-height:1;
+    color:var(--ink);
+  }
+  .summary-cell .lbl{
+    font-size:12px;
+    color:var(--ink-faded);
+    margin-top:6px;
+  }
+  .summary-cell.flag{border-top-color:var(--flag);}
+  .summary-cell.flag .num{color:var(--flag);}
+
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:6px 0 14px 0;
+    flex-wrap:wrap;
+  }
+  .toolbar input[type=search]{
+    font-family:'Inter', sans-serif;
+    font-size:13.5px;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid var(--rule);
+    background:var(--card);
+    color:var(--ink);
+    width:220px;
+  }
+  .toolbar input[type=search]:focus{outline:none; border-color:var(--brand);}
+  .export-links{font-size:13px;}
+  .export-links a{
+    color:var(--ink-soft);
+    font-weight:600;
+    text-decoration:none;
+    margin-left:16px;
+    cursor:pointer;
+  }
+  .export-links a:hover{color:var(--brand);}
+
+  .ledger-wrap{
+    background:var(--card);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:6px 8px;
+    overflow:hidden;
+  }
+  table.ledger{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  table.ledger thead th{
+    text-align:left;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink-faded);
+    border-bottom:1px solid var(--rule);
+    padding:12px 14px 10px 14px;
+  }
+  table.ledger tbody td{
+    padding:12px 14px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:middle;
+  }
+  table.ledger tbody tr:last-child td{border-bottom:none;}
+  table.ledger tbody tr:hover{background:var(--card-soft);}
+  .idx-col{color:var(--ink-faded); width:36px; font-family:'IBM Plex Mono', monospace; font-size:12px;}
+  .user-col a{color:var(--ink); text-decoration:none; font-weight:600; font-family:'IBM Plex Mono', monospace; font-size:13.5px;}
+  .user-col a:hover{color:var(--brand);}
+  .stamp{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--flag);
+    background:var(--flag-soft);
+    border-radius:999px;
+    padding:5px 12px;
+  }
+  .stamp::before{
+    content:"";
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--flag);
+    flex-shrink:0;
+  }
+  .action-col{width:1%; white-space:nowrap; text-align:right;}
+  .profile-btn{
+    display:inline-block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-decoration:none;
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:7px 14px;
+    white-space:nowrap;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .profile-btn:hover{border-color:var(--brand); color:var(--brand);}
+  .empty-state{
+    padding:44px 10px;
+    text-align:center;
+    color:var(--ink-faded);
+    font-size:14px;
+  }
+
+  footer.note{
+    margin-top:40px;
+    font-size:12px;
+    color:var(--ink-faded);
+    line-height:1.7;
+    border-top:1px solid var(--rule);
+    padding-top:18px;
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="letterhead">
+    <span class="eyebrow"><span class="dot"></span>Tarayıcınızda çalışır · veri gönderilmez</span>
+    <div class="title-block">
+      <h1>Takip Denetim Raporu</h1>
+      <div class="sub">Takip etmeyen hesapları, takip listenizle karşılaştırarak tek raporda gösterir — tüm hesaplama tarayıcınızda gerçekleşir.</div>
+    </div>
+  </header>
+
+  <div class="credit">
+    <span class="credit-name">Designed &amp; Developed by <b>Efe Çolak</b></span>
+    <span class="credit-sep">·</span>
+    <a class="credit-ig" href="https://instagram.com/efecolakx" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/></svg>
+      Instagram: @efecolakx
+    </a>
+  </div>
+
+  <div class="trust-box">
+    <h2>Instagram Verilerinizi Güvenle Analiz Edin</h2>
+    <p>Instagram hesabınızın kullanıcı adı veya şifresini paylaşmanıza gerek kalmadan, sizi takip etmeyen hesapları kolayca görüntüleyin.</p>
+    <p class="faded">Uygulama, yalnızca Instagram tarafından sağlanan hesap veri dosyalarını analiz eder. Hesabınıza doğrudan erişim sağlamaz, giriş bilgilerinizi istemez ve kişisel verilerinizi saklamaz.</p>
+    <p class="faded">Analiz işlemi için öncelikle Instagram üzerinden hesap verilerinizi indirmeniz gerekir. Instagram'ın veri hazırlama süreci, hesap büyüklüğüne ve platform yoğunluğuna bağlı olarak birkaç dakika veya daha uzun sürebilir. Veri dosyanız hazır olduğunda sisteme yükleyerek hızlı bir şekilde analiz sonucunu görüntüleyebilirsiniz.</p>
+    <p style="margin-bottom:0;"><b>Basit, güvenli ve şeffaf bir yöntem:</b></p>
+    <ul class="trust-list">
+      <li>Şifre paylaşımı gerektirmez</li>
+      <li>Hesabınıza giriş yapılmaz</li>
+      <li>Verileriniz sizin kontrolünüzde kalır</li>
+      <li>Yalnızca sağladığınız dosyalar üzerinden analiz yapılır</li>
+    </ul>
+    <p class="closing">Gizliliğinize önem veren, güvenli ve kullanıcı odaklı bir analiz deneyimi için geliştirilmiştir.</p>
+  </div>
+
+  <div class="wizard">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Instagram'dan verinizi talep edin</div>
+        <div class="step-desc">
+          Takipçi ve takip listeniz yalnızca Instagram'ın resmi "Verinizi İndirin" sayfası üzerinden paylaşılabilir; aşağıdaki bağlantı sizi doğrudan bu sayfaya yönlendirir.
+        </div>
+        <a class="step-btn" href="https://www.instagram.com/download/request/" target="_blank" rel="noopener noreferrer">
+          Instagram Veri İndirme Sayfasını Aç ↗
+        </a>
+        <div class="step-note">
+          Açılan sayfada hesabınızı seçin → <b>"Bir kısmını indir"</b> seçeneğinde <b>"Takipçiler ve takip edilenler"</b> kutusunu işaretleyin → format olarak <b>JSON</b>'ı seçin → indirme talebini gönderin.
+          Instagram genellikle birkaç dakika, bazen birkaç saat içinde e-posta ile bilgilendirir ve ZIP dosyasını cihazınıza indirirsiniz.
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">İndirdiğiniz ZIP dosyasını yükleyin</div>
+        <div class="step-desc">Dosyayı açmanıza veya ayıklamanıza gerek yok — olduğu gibi yükleyin, rapor otomatik olarak oluşturulur.</div>
+
+        <div class="dropzone dropzone-btn" id="dropzone" tabindex="0" role="button" aria-label="ZIP dosyasını seç">
+          <div class="dz-btn-label">ZIP Dosyasını Seç</div>
+          <div class="dz-sub">Mobil cihazda Dosyalar / İndirilenler klasöründen seçebilir, bilgisayarda bu alana sürükleyip bırakabilirsiniz</div>
+          <input type="file" id="zipInput" accept=".zip,application/zip" hidden>
+        </div>
+        <div class="dz-status" id="dzStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <details class="manual-toggle" id="manualToggle">
+    <summary>ZIP dosyasını zaten ayıkladıysanız, JSON dosyalarını ayrı ayrı yükleyebilirsiniz</summary>
+    <div class="inner">
+      <div class="upload-grid">
+        <div class="field" id="fieldFollowers">
+          <span class="label">Takipçiler (followers_*.json)</span>
+          <label class="btn" for="inputFollowers">Dosya Seç</label>
+          <input type="file" id="inputFollowers" accept="application/json,.json" multiple>
+          <div class="filecount" id="countFollowers"></div>
+        </div>
+        <div class="field" id="fieldFollowing">
+          <span class="label">Takip Edilenler (following.json)</span>
+          <label class="btn" for="inputFollowing">Dosya Seç</label>
+          <input type="file" id="inputFollowing" accept="application/json,.json">
+          <div class="filecount" id="countFollowing"></div>
+        </div>
+      </div>
+      <div class="run-row">
+        <button id="runBtn" disabled>Raporu Oluştur</button>
+        <span class="status-msg" id="statusMsg"></span>
+      </div>
+    </div>
+  </details>
+
+  <div class="results" id="results">
+    <div class="summary-strip">
+      <div class="summary-cell">
+        <div class="num" id="sumFollowers">0</div>
+        <div class="lbl">Takipçi</div>
+      </div>
+      <div class="summary-cell">
+        <div class="num" id="sumFollowing">0</div>
+        <div class="lbl">Takip Edilen</div>
+      </div>
+      <div class="summary-cell flag">
+        <div class="num" id="sumNotBack">0</div>
+        <div class="lbl">Sizi Takip Etmiyor</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="search" id="searchBox" placeholder="Kullanıcı adına göre filtrele">
+      <span class="export-links">
+        <a id="exportTxt">TXT olarak indir</a><a id="exportCsv">CSV olarak indir</a>
+      </span>
+    </div>
+
+    <div class="ledger-wrap">
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th class="idx-col">#</th>
+            <th class="user-col">Kullanıcı Adı</th>
+            <th>Durum</th>
+            <th class="action-col"></th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none;">Listenizdeki herkes sizi geri takip ediyor.</div>
+    </div>
+  </div>
+
+  <footer class="note">
+    Not: Instagram, gizli hesapları veya sizi engellemiş kullanıcıları ayrı olarak listelemez; bu rapor yalnızca
+    indirdiğiniz veri dosyalarındaki takip ilişkisini yansıtır. Veriler yalnızca tarayıcı belleğinde tutulur ve sayfa kapatıldığında silinir.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const dropzone = document.getElementById('dropzone');
+  const zipInput = document.getElementById('zipInput');
+  const dzStatus = document.getElementById('dzStatus');
+  const manualToggle = document.getElementById('manualToggle');
+
+  const inputFollowers = document.getElementById('inputFollowers');
+  const inputFollowing = document.getElementById('inputFollowing');
+  const fieldFollowers = document.getElementById('fieldFollowers');
+  const fieldFollowing = document.getElementById('fieldFollowing');
+  const countFollowers = document.getElementById('countFollowers');
+  const countFollowing = document.getElementById('countFollowing');
+  const runBtn = document.getElementById('runBtn');
+  const statusMsg = document.getElementById('statusMsg');
+
+  const results = document.getElementById('results');
+  const ledgerBody = document.getElementById('ledgerBody');
+  const emptyState = document.getElementById('emptyState');
+  const searchBox = document.getElementById('searchBox');
+
+
+  let followersFiles = [];
+  let followingFile = null;
+  let notFollowingBack = []; // {username, href}
+
+
+  // ---------- shared parsing helpers ----------
+
+  // Instagram export formats vary: sometimes a raw array of entries,
+  // sometimes an object wrapping the array under a relationships_* key.
+  function extractEntries(json){
+    if(Array.isArray(json)) return json;
+    if(json && typeof json === 'object'){
+      for(const key of Object.keys(json)){
+        if(Array.isArray(json[key])) return json[key];
+      }
+    }
+    return [];
+  }
+
+  function entriesToUserMap(entries){
+    const map = new Map(); // username -> href
+    for(const entry of entries){
+      let list = entry.string_list_data;
+      if(!list && entry.value){ list = [entry]; } // fallback shape
+      if(!Array.isArray(list)) continue;
+      for(const item of list){
+        const username = item.value;
+        if(username && !map.has(username)){
+          map.set(username, item.href || ('https://www.instagram.com/' + username));
+        }
+      }
+    }
+    return map;
+  }
+
+  function readFileAsText(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = ()=> reject(new Error(file.name + ' okunamadı.'));
+      reader.readAsText(file);
+    });
+  }
+
+  function parseJsonSafe(text, label){
+    try{ return JSON.parse(text); }
+    catch(err){ throw new Error(label + ' geçerli bir JSON değil.'); }
+  }
+
+  // ---------- shared compute + render ----------
+
+  function computeAndRender(followersCombined, followingMap){
+    if(followersCombined.size === 0){
+      throw new Error('Takipçi verisinden kullanıcı okunamadı. Doğru followers_*.json dosyalarını kullandığınızdan emin olun.');
+    }
+    if(followingMap.size === 0){
+      throw new Error('Takip edilenler verisinden kullanıcı okunamadı. Doğru following.json dosyasını kullandığınızdan emin olun.');
+    }
+
+    notFollowingBack = [];
+    followingMap.forEach((href, user)=>{
+      if(!followersCombined.has(user)){
+        notFollowingBack.push({username:user, href});
+      }
+    });
+    notFollowingBack.sort((a,b)=> a.username.localeCompare(b.username));
+
+    document.getElementById('sumFollowers').textContent = followersCombined.size;
+    document.getElementById('sumFollowing').textContent = followingMap.size;
+    document.getElementById('sumNotBack').textContent = notFollowingBack.length;
+
+    renderLedger(notFollowingBack);
+    results.classList.add('show');
+    results.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function renderLedger(list){
+    ledgerBody.innerHTML = '';
+    if(list.length === 0){
+      emptyState.style.display = 'block';
+      emptyState.textContent = 'Listenizdeki herkes sizi geri takip ediyor.';
+      return;
+    }
+    emptyState.style.display = 'none';
+    list.forEach((entry, i)=>{
+      const tr = document.createElement('tr');
+      tr.dataset.username = entry.username.toLowerCase();
+      tr.innerHTML = `
+        <td class="idx-col">${i+1}</td>
+        <td class="user-col"><a href="${entry.href}" target="_blank" rel="noopener noreferrer">@${entry.username}</a></td>
+        <td><span class="stamp">Geri Takip Yok</span></td>
+        <td class="action-col"><a class="profile-btn" href="${entry.href}" target="_blank" rel="noopener noreferrer">Profili Aç ↗</a></td>
+      `;
+      ledgerBody.appendChild(tr);
+    });
+  }
+
+  // ---------- primary path: drag & drop the ZIP ----------
+
+  function setDzStatus(text, kind){
+    dzStatus.textContent = text;
+    dzStatus.className = 'dz-status' + (kind ? ' ' + kind : '');
+  }
+
+  dropzone.addEventListener('click', ()=> zipInput.click());
+  dropzone.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); zipInput.click(); }
+  });
+  ['dragenter','dragover'].forEach(evt=>{
+    dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); });
+  });
+  ['dragleave','drop'].forEach(evt=>{
+    dropzone.addEventListener(evt, (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); });
+  });
+  dropzone.addEventListener('drop', (e)=>{
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(file) handleZipFile(file);
+  });
+  zipInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(file) handleZipFile(file);
+  });
+
+  async function handleZipFile(file){
+    if(!/\.zip$/i.test(file.name)){
+      setDzStatus("Bu dosya bir ZIP değil. Instagram'ın sağladığı veri paketini olduğu gibi yükleyin.", 'error');
+      return;
+    }
+    dropzone.classList.remove('done');
+    setDzStatus('ZIP dosyası açılıyor ve içerik taranıyor...');
+    try{
+      const zip = await JSZip.loadAsync(file);
+      const followerTasks = [];
+      let followingTask = null;
+
+      zip.forEach((relPath, zipEntry)=>{
+        if(zipEntry.dir) return;
+        const base = relPath.split('/').pop().toLowerCase();
+        if(/^followers(_\d+)?\.json$/.test(base)){
+          followerTasks.push(zipEntry.async('string'));
+        } else if(base === 'following.json'){
+          followingTask = zipEntry.async('string');
+        }
+      });
+
+      if(followerTasks.length === 0 || !followingTask){
+        throw new Error('ZIP içinde followers_*.json ve following.json bulunamadı. "Takipçiler ve takip edilenler" seçeneğini işaretleyerek indirdiğinizden emin olun.');
+      }
+
+      const followerTexts = await Promise.all(followerTasks);
+      const followingText = await followingTask;
+
+      const followersCombined = new Map();
+      followerTexts.forEach((text, i)=>{
+        const json = parseJsonSafe(text, 'followers dosyası');
+        const map = entriesToUserMap(extractEntries(json));
+        map.forEach((href, user)=> followersCombined.set(user, href));
+      });
+
+      const followingJson = parseJsonSafe(followingText, 'following.json');
+      const followingMap = entriesToUserMap(extractEntries(followingJson));
+
+      computeAndRender(followersCombined, followingMap);
+
+      dropzone.classList.add('done');
+      setDzStatus(`Rapor hazırlandı — ${followerTasks.length} takipçi dosyası okundu.`, 'ok');
+    }catch(err){
+      setDzStatus(err.message || 'ZIP dosyası okunamadı.', 'error');
+    }
+  }
+
+  // ---------- fallback path: pick already-extracted JSON files ----------
+
+  function updateRunState(){
+    runBtn.disabled = !(followersFiles.length > 0 && followingFile);
+  }
+
+  inputFollowers.addEventListener('change', (e)=>{
+    followersFiles = Array.from(e.target.files);
+    if(followersFiles.length){
+      fieldFollowers.classList.add('filled');
+      countFollowers.textContent = followersFiles.length + ' dosya seçildi: ' + followersFiles.map(f=>f.name).join(', ');
+    } else {
+      fieldFollowers.classList.remove('filled');
+      countFollowers.textContent = '';
+    }
+    updateRunState();
+  });
+
+  inputFollowing.addEventListener('change', (e)=>{
+    followingFile = e.target.files[0] || null;
+    if(followingFile){
+      fieldFollowing.classList.add('filled');
+      countFollowing.textContent = followingFile.name;
+    } else {
+      fieldFollowing.classList.remove('filled');
+      countFollowing.textContent = '';
+    }
+    updateRunState();
+  });
+
+  function setError(msg){
+    statusMsg.textContent = msg;
+    statusMsg.classList.add('error');
+  }
+  function clearError(){
+    statusMsg.textContent = '';
+    statusMsg.classList.remove('error');
+  }
+
+  runBtn.addEventListener('click', async ()=>{
+    clearError();
+    runBtn.disabled = true;
+    statusMsg.textContent = 'Dosyalar işleniyor...';
+    try{
+      const followerMaps = await Promise.all(followersFiles.map(async f=>{
+        const text = await readFileAsText(f);
+        const json = parseJsonSafe(text, f.name);
+        return entriesToUserMap(extractEntries(json));
+      }));
+      const followersCombined = new Map();
+      followerMaps.forEach(m => m.forEach((href, user) => followersCombined.set(user, href)));
+
+      const followingText = await readFileAsText(followingFile);
+      const followingJson = parseJsonSafe(followingText, followingFile.name);
+      const followingMap = entriesToUserMap(extractEntries(followingJson));
+
+      computeAndRender(followersCombined, followingMap);
+      statusMsg.textContent = 'Rapor hazırlandı.';
+    }catch(err){
+      setError(err.message || 'Bir hata oluştu.');
+    }finally{
+      runBtn.disabled = false;
+    }
+  });
+
+  // ---------- results toolbar ----------
+
+  searchBox.addEventListener('input', ()=>{
+    const q = searchBox.value.trim().toLowerCase();
+    let visibleCount = 0;
+    Array.from(ledgerBody.children).forEach(tr=>{
+      const match = tr.dataset.username.includes(q);
+      tr.style.display = match ? '' : 'none';
+      if(match) visibleCount++;
+    });
+    emptyState.style.display = (visibleCount === 0) ? 'block' : 'none';
+    emptyState.textContent = (visibleCount === 0 && q) ? 'Aramanızla eşleşen kullanıcı bulunamadı.' : 'Listenizdeki herkes sizi geri takip ediyor.';
+  });
+
+  function downloadBlob(content, filename, type){
+    const blob = new Blob([content], {type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('exportTxt').addEventListener('click', ()=>{
+    if(!notFollowingBack.length) return;
+    const content = notFollowingBack.map(e => '@' + e.username).join('\n');
+    downloadBlob(content, 'geri-takip-etmeyenler.txt', 'text/plain');
+  });
+
+  document.getElementById('exportCsv').addEventListener('click', ()=>{
+    if(!notFollowingBack.length) return;
+    const content = 'username,profile_url\n' + notFollowingBack.map(e => `${e.username},${e.href}`).join('\n');
+    downloadBlob(content, 'geri-takip-etmeyenler.csv', 'text/csv');
+  });
+})();
+</script>
+</body>
+</html>
