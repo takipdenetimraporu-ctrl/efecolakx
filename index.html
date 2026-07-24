@@ -819,6 +819,7 @@
       const zip = await JSZip.loadAsync(file);
       const followerTasks = [];
       let followingTask = null;
+      let foundHtmlInstead = false;
 
       zip.forEach((relPath, zipEntry)=>{
         if(zipEntry.dir) return;
@@ -827,10 +828,15 @@
           followerTasks.push(zipEntry.async('string'));
         } else if(base === 'following.json'){
           followingTask = zipEntry.async('string');
+        } else if(/^followers(_\d+)?\.html$/.test(base) || base === 'following.html'){
+          foundHtmlInstead = true;
         }
       });
 
       if(followerTasks.length === 0 || !followingTask){
+        if(foundHtmlInstead){
+          throw new Error('Bu ZIP, veriyi HTML formatında içeriyor. Instagram\'dan yeniden veri talep ederken format olarak mutlaka "JSON" seçin (varsayılan HTML gelir). Aşağıdaki "1. adım"daki bağlantıdan yeniden talep gönderin.');
+        }
         throw new Error('ZIP içinde followers_*.json ve following.json bulunamadı. "Takipçiler ve takip edilenler" seçeneğini işaretleyerek indirdiğinizden emin olun.');
       }
 
