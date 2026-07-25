@@ -472,6 +472,36 @@
   }
   .new-check-btn:hover{border-color:var(--brand); color:var(--brand);}
 
+  .snapshot-note{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    border-radius:14px;
+    background:var(--card-soft);
+    border:1px solid var(--rule);
+    padding:16px 20px;
+    margin-bottom:18px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink-soft);
+  }
+  .snapshot-note .sn-icon{
+    flex-shrink:0;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:var(--brand);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:13px;
+    margin-top:1px;
+  }
+  .snapshot-note b{color:var(--ink);}
+
   .compare-panel{
     border-radius:14px;
     background:var(--card);
@@ -825,6 +855,16 @@
     <div class="results-head">
       <button class="new-check-btn" id="newCheckBtn" type="button">↺ Yeni ZIP Yükle</button>
     </div>
+
+    <div class="snapshot-note">
+      <span class="sn-icon">i</span>
+      <span>
+        <b>Bu rapor bir anlık görüntüdür</b> — Instagram'ın verinizi hazırladığı ana ait bir kayıttır, gerçek zamanlı değildir.
+        Bu tarihten sonra takip/unfollow yaptıysanız, güncel sonucu görmek için Instagram'dan <b>yeni bir veri talebi</b> gönderip
+        yeni ZIP'i yüklemeniz gerekir.
+      </span>
+    </div>
+
     <div class="compare-panel" id="comparePanel" style="display:none;"></div>
 
     <div class="summary-strip">
