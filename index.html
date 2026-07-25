@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Takip Denetim Raporu</title>
+<title>Takip Denetim Raporu — Sizi Geri Takip Etmeyenleri Görün</title>
+<meta name="description" content="Instagram'ın resmi veri indirme özelliğiyle aldığınız veri paketini yükleyin, sizi geri takip etmeyen hesapları güvenle görün. Şifre istenmez, veri sunucuya gönderilmez.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23A6335A'/%3E%3Ccircle cx='50' cy='38' r='16' fill='none' stroke='white' stroke-width='7'/%3E%3Cpath d='M22 82 C22 62 78 62 78 82' fill='none' stroke='white' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta property="og:title" content="Takip Denetim Raporu">
+<meta property="og:description" content="Instagram'da sizi geri takip etmeyenleri, hesap bilgisi paylaşmadan güvenle görün.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#A6335A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -287,6 +293,18 @@
   }
   .dz-status.error{color:var(--flag);}
   .dz-status.ok{color:var(--good);}
+  .dz-spinner{
+    display:inline-block;
+    width:11px;
+    height:11px;
+    border:2px solid var(--rule);
+    border-top-color:var(--brand);
+    border-radius:50%;
+    margin-right:7px;
+    vertical-align:-1px;
+    animation:dzspin .7s linear infinite;
+  }
+  @keyframes dzspin{ to{ transform:rotate(360deg); } }
 
   /* ---------- manual toggle ---------- */
   .manual-toggle{
@@ -306,6 +324,59 @@
   }
   .manual-toggle[open] summary{border-bottom:1px solid var(--rule);}
   .manual-toggle .inner{padding:20px;}
+
+  .faq-section{margin-bottom:36px;}
+  .faq-section h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0 0 14px 0;
+    color:var(--ink);
+  }
+  .faq-item{
+    border-radius:14px;
+    background:var(--card);
+    box-shadow:var(--shadow-sm);
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .faq-item summary{
+    cursor:pointer;
+    padding:16px 20px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{
+    content:"+";
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    color:var(--brand);
+    flex-shrink:0;
+    transition:transform .15s ease;
+  }
+  .faq-item[open] summary::after{transform:rotate(45deg);}
+  .faq-item[open] summary{border-bottom:1px solid var(--rule);}
+  .faq-item .faq-body{
+    padding:4px 20px 18px 20px;
+    font-size:13.5px;
+    line-height:1.7;
+    color:var(--ink-soft);
+  }
+  .faq-item .faq-body b{color:var(--ink);}
+  .faq-item .faq-body code{
+    background:var(--card-soft);
+    padding:2px 6px;
+    border-radius:5px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+  }
 
   .upload-grid{
     display:grid;
@@ -382,6 +453,24 @@
   /* ---------- results ---------- */
   .results{display:none; margin-top:40px;}
   .results.show{display:block;}
+  .results-head{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:14px;
+  }
+  .new-check-btn{
+    font-family:'Inter', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:999px;
+    padding:8px 16px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .new-check-btn:hover{border-color:var(--brand); color:var(--brand);}
 
   .compare-panel{
     border-radius:14px;
@@ -662,7 +751,79 @@
     </div>
   </details>
 
+  <section class="faq-section">
+    <h2>Sıkça Sorulan Sorular</h2>
+
+    <details class="faq-item">
+      <summary>Instagram'dan veri indirirken "HTML" mi "JSON" mu seçmeliyim?</summary>
+      <div class="faq-body">
+        Mutlaka <b>JSON</b> seçin. Instagram varsayılan olarak HTML formatını seçili bırakıyor ve bu çok gözden kaçıyor.
+        Format HTML seçilirse, ZIP içindeki dosyalar <code>followers_1.html</code> / <code>following.html</code> şeklinde gelir ve bu site onları okuyamaz.
+        Yanlışlıkla HTML indirdiyseniz tek çözüm, veriyi JSON seçerek yeniden talep etmektir — HTML'den JSON'a dönüştürme imkanı yoktur.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>İndirdiğim ZIP dosyasını nereye yüklemeliyim?</summary>
+      <div class="faq-body">
+        ZIP dosyasını yalnızca bu sayfadaki <b>"ZIP Dosyasını Seç"</b> kutusuna yükleyin. Dosyayı açmanıza, ayıklamanıza,
+        Instagram'a geri göndermenize veya başka bir uygulamaya (WhatsApp, DM vb.) paylaşmanıza gerek yoktur — böyle bir paylaşım
+        zaten çalışmaz, çünkü mesajlaşma uygulamaları ZIP dosyalarını bu amaçla desteklemez.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>"followers_*.json ve following.json bulunamadı" hatası ne anlama gelir?</summary>
+      <div class="faq-body">
+        Bu genelde iki sebepten olur: (1) veri HTML formatında indirilmiş — yukarıdaki maddeye bakın, ya da (2) indirme talebinde
+        <b>"Takipçiler ve takip edilenler"</b> kutusu işaretlenmemiş. Instagram'ın veri indirme sayfasına dönüp bu kutuyu
+        işaretleyerek yeniden talep göndermeniz gerekir.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Bir kullanıcının profiline tıklayınca "Üzgünüz, bu sayfa kullanılamıyor" çıkıyor, neden?</summary>
+      <div class="faq-body">
+        Bu, sitenin değil <b>Instagram'ın kendi hata mesajıdır</b>. O kullanıcı, verinizi indirdiğiniz tarihten bu yana
+        hesabını silmiş veya kullanıcı adını değiştirmiş olabilir. Yüzlerce hesaplık bir listede bunun bir kısmının artık
+        geçersiz olması normaldir; raporun geri kalan sayıları ve listesi bundan etkilenmez.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Sonuçlar neden Instagram'da gördüğümden biraz farklı olabilir?</summary>
+      <div class="faq-body">
+        İki sebebi olabilir: verinizi indirdiğiniz an ile şu an arasında bazı hesaplar sizi takip etmeyi bırakmış ya da
+        takip etmeye başlamış olabilir (veri, indirme anındaki bir anlık görüntüdür). Ayrıca Instagram, bazı hesapları
+        (gizli/kısıtlı görülen hesaplar) kendi export dosyasından hariç tutabiliyor — bu, sitenin değil Instagram'ın kendi
+        davranışıdır.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Verilerim güvende mi, bir yere gönderiliyor mu?</summary>
+      <div class="faq-body">
+        Hayır. Yüklediğiniz ZIP dosyası yalnızca <b>kendi tarayıcınızda</b> işlenir, hiçbir sunucuya gönderilmez.
+        Sayfayı kapattığınızda veri bellekten silinir. Yalnızca "geri takip etmeyen" kullanıcı adlarının listesi, bir
+        sonraki ziyaretinizde karşılaştırma yapabilmek için bu cihazın tarayıcısında (localStorage) saklanır; bunu istediğiniz
+        an tarayıcı verilerinizi temizleyerek silebilirsiniz.
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Instagram veri hazırlama işlemi ne kadar sürer?</summary>
+      <div class="faq-body">
+        Hesap büyüklüğüne göre değişir — genelde birkaç dakika ile birkaç saat arasında sürer, bazı büyük hesaplarda
+        1-2 güne kadar çıkabilir. Instagram, veri hazır olduğunda size e-posta ile bildirir; o e-postadaki bağlantıdan ZIP
+        dosyasını indirip bu siteye yükleyebilirsiniz.
+      </div>
+    </details>
+  </section>
+
   <div class="results" id="results">
+    <div class="results-head">
+      <button class="new-check-btn" id="newCheckBtn" type="button">↺ Yeni ZIP Yükle</button>
+    </div>
     <div class="compare-panel" id="comparePanel" style="display:none;"></div>
 
     <div class="summary-strip">
@@ -915,8 +1076,12 @@
   // ---------- primary path: drag & drop the ZIP ----------
 
   function setDzStatus(text, kind){
-    dzStatus.textContent = text;
-    dzStatus.className = 'dz-status' + (kind ? ' ' + kind : '');
+    if(kind === 'loading'){
+      dzStatus.innerHTML = '<span class="dz-spinner"></span>' + text;
+    } else {
+      dzStatus.textContent = text;
+    }
+    dzStatus.className = 'dz-status' + (kind && kind !== 'loading' ? ' ' + kind : '');
   }
 
   dropzone.addEventListener('click', ()=> zipInput.click());
@@ -944,11 +1109,11 @@
       return;
     }
     dropzone.classList.remove('done');
-    setDzStatus('ZIP dosyası açılıyor ve içerik taranıyor...');
+    setDzStatus('ZIP dosyası açılıyor ve içerik taranıyor...', 'loading');
     try{
       const zip = await JSZip.loadAsync(file);
       const followerTasks = [];
-      let followingTask = null;
+      const followingTasks = [];
       let foundHtmlInstead = false;
 
       zip.forEach((relPath, zipEntry)=>{
@@ -956,14 +1121,14 @@
         const base = relPath.split('/').pop().toLowerCase();
         if(/^followers(_\d+)?\.json$/.test(base)){
           followerTasks.push(zipEntry.async('string'));
-        } else if(base === 'following.json'){
-          followingTask = zipEntry.async('string');
-        } else if(/^followers(_\d+)?\.html$/.test(base) || base === 'following.html'){
+        } else if(/^following(_\d+)?\.json$/.test(base)){
+          followingTasks.push(zipEntry.async('string'));
+        } else if(/^followers(_\d+)?\.html$/.test(base) || /^following(_\d+)?\.html$/.test(base)){
           foundHtmlInstead = true;
         }
       });
 
-      if(followerTasks.length === 0 || !followingTask){
+      if(followerTasks.length === 0 || followingTasks.length === 0){
         if(foundHtmlInstead){
           throw new Error('Bu ZIP, veriyi HTML formatında içeriyor. Instagram\'dan yeniden veri talep ederken format olarak mutlaka "JSON" seçin (varsayılan HTML gelir). Aşağıdaki "1. adım"daki bağlantıdan yeniden talep gönderin.');
         }
@@ -971,22 +1136,26 @@
       }
 
       const followerTexts = await Promise.all(followerTasks);
-      const followingText = await followingTask;
+      const followingTexts = await Promise.all(followingTasks);
 
       const followersCombined = new Map();
-      followerTexts.forEach((text, i)=>{
+      followerTexts.forEach((text)=>{
         const json = parseJsonSafe(text, 'followers dosyası');
         const map = entriesToUserMap(extractEntries(json));
         map.forEach((info, user)=> followersCombined.set(user, info));
       });
 
-      const followingJson = parseJsonSafe(followingText, 'following.json');
-      const followingMap = entriesToUserMap(extractEntries(followingJson));
+      const followingMap = new Map();
+      followingTexts.forEach((text)=>{
+        const json = parseJsonSafe(text, 'following dosyası');
+        const map = entriesToUserMap(extractEntries(json));
+        map.forEach((info, user)=> followingMap.set(user, info));
+      });
 
       computeAndRender(followersCombined, followingMap);
 
       dropzone.classList.add('done');
-      setDzStatus(`Rapor hazırlandı — ${followerTasks.length} takipçi dosyası okundu.`, 'ok');
+      setDzStatus(`Rapor hazırlandı — ${followerTasks.length} takipçi, ${followingTasks.length} takip dosyası okundu.`, 'ok');
     }catch(err){
       setDzStatus(err.message || 'ZIP dosyası okunamadı.', 'error');
     }
@@ -1034,7 +1203,7 @@
   runBtn.addEventListener('click', async ()=>{
     clearError();
     runBtn.disabled = true;
-    statusMsg.textContent = 'Dosyalar işleniyor...';
+    statusMsg.innerHTML = '<span class="dz-spinner"></span>Dosyalar işleniyor...';
     try{
       const followerMaps = await Promise.all(followersFiles.map(async f=>{
         const text = await readFileAsText(f);
@@ -1055,6 +1224,25 @@
     }finally{
       runBtn.disabled = false;
     }
+  });
+
+  // ---------- start a fresh check ----------
+
+  document.getElementById('newCheckBtn').addEventListener('click', ()=>{
+    results.classList.remove('show');
+    zipInput.value = '';
+    inputFollowers.value = '';
+    inputFollowing.value = '';
+    followersFiles = [];
+    followingFile = null;
+    dropzone.classList.remove('done');
+    setDzStatus('');
+    fieldFollowers.classList.remove('filled');
+    fieldFollowing.classList.remove('filled');
+    countFollowers.textContent = '';
+    countFollowing.textContent = '';
+    updateRunState();
+    dropzone.scrollIntoView({behavior:'smooth', block:'center'});
   });
 
   // ---------- results toolbar ----------
