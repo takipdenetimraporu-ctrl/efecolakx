@@ -723,8 +723,11 @@
         // username sits on item.value, sometimes only on entry.title,
         // sometimes it can only be recovered from the href itself.
         const username = item.value || entry.title || usernameFromHref(item.href);
+        // Some export files (following.json) give an internal redirect link like
+        // instagram.com/_u/username which fails to open reliably in a browser.
+        // Since we already have a clean username, always build a normal profile URL.
         if(username && !map.has(username)){
-          map.set(username, item.href || ('https://www.instagram.com/' + username));
+          map.set(username, 'https://www.instagram.com/' + username + '/');
         }
       }
     }
