@@ -383,6 +383,41 @@
   .results{display:none; margin-top:40px;}
   .results.show{display:block;}
 
+  .compare-panel{
+    border-radius:14px;
+    background:var(--card);
+    box-shadow:var(--shadow-sm);
+    padding:18px 22px;
+    margin-bottom:18px;
+    border-left:4px solid var(--good);
+  }
+  .compare-panel h3{
+    font-family:'Fraunces', serif;
+    font-size:15.5px;
+    font-weight:600;
+    margin:0 0 10px 0;
+    color:var(--ink);
+  }
+  .compare-panel .cp-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    font-size:13px;
+    line-height:1.7;
+    margin-bottom:6px;
+  }
+  .compare-panel .cp-row:last-child{margin-bottom:0;}
+  .compare-panel .cp-tag{
+    display:inline-block;
+    font-weight:600;
+    border-radius:6px;
+    padding:2px 8px;
+    font-size:12.5px;
+  }
+  .compare-panel .cp-tag.new-flag{background:var(--flag-soft); color:var(--flag);}
+  .compare-panel .cp-tag.new-good{background:var(--good-soft); color:var(--good);}
+  .compare-panel .cp-meta{font-size:11.5px; color:var(--ink-faded); margin-top:10px;}
+
   .summary-strip{
     display:flex;
     gap:14px;
@@ -447,10 +482,12 @@
     border-radius:16px;
     box-shadow:var(--shadow);
     padding:6px 8px;
-    overflow:hidden;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
   }
   table.ledger{
     width:100%;
+    min-width:480px;
     border-collapse:collapse;
     font-size:14px;
   }
@@ -512,6 +549,14 @@
     text-align:center;
     color:var(--ink-faded);
     font-size:14px;
+  }
+
+  @media (max-width:420px){
+    .sheet{padding:32px 16px 0 16px;}
+    table.ledger thead th:nth-child(3), table.ledger tbody td:nth-child(3){display:none;}
+    .toolbar input[type=search]{width:100%;}
+    .toolbar{flex-direction:column; align-items:stretch;}
+    .export-links{text-align:right;}
   }
 
   footer.note{
@@ -618,6 +663,8 @@
   </details>
 
   <div class="results" id="results">
+    <div class="compare-panel" id="comparePanel" style="display:none;"></div>
+
     <div class="summary-strip">
       <div class="summary-cell">
         <div class="num" id="sumFollowers">0</div>
@@ -649,6 +696,7 @@
           <tr>
             <th class="idx-col">#</th>
             <th class="user-col">Kullanıcı Adı</th>
+            <th>Takip Tarihi</th>
             <th>Durum</th>
             <th class="action-col"></th>
           </tr>
@@ -661,7 +709,10 @@
 
   <footer class="note">
     Not: Instagram, gizli hesapları veya sizi engellemiş kullanıcıları ayrı olarak listelemez; bu rapor yalnızca
-    indirdiğiniz veri dosyalarındaki takip ilişkisini yansıtır. Veriler yalnızca tarayıcı belleğinde tutulur ve sayfa kapatıldığında silinir.
+    indirdiğiniz veri dosyalarındaki takip ilişkisini yansıtır. Yüklediğiniz ZIP dosyasının kendisi hiçbir yere gönderilmez ve
+    sayfa kapatıldığında bellekten silinir. Yalnızca "geri takip etmeyen" kullanıcı adları listesi, bir sonraki kontrolünüzle
+    karşılaştırma yapabilmek için bu cihazın tarayıcısında (localStorage) saklanır — istediğiniz zaman tarayıcı verilerinizi
+    temizleyerek bu kaydı silebilirsiniz.
   </footer>
 
 </div>
@@ -716,7 +767,7 @@
   }
 
   function entriesToUserMap(entries){
-    const map = new Map(); // username -> href
+    const map = new Map(); // username -> {href, timestamp}
     for(const entry of entries){
       let list = entry.string_list_data;
       if(!list && entry.value){ list = [entry]; }
@@ -730,7 +781,10 @@
         // instagram.com/_u/username which fails to open reliably in a browser.
         // Since we already have a clean username, always build a normal profile URL.
         if(username && !map.has(username)){
-          map.set(username, 'https://www.instagram.com/' + username + '/');
+          map.set(username, {
+            href: 'https://www.instagram.com/' + username + '/',
+            timestamp: typeof item.timestamp === 'number' ? item.timestamp : null
+          });
         }
       }
     }
@@ -762,9 +816,9 @@
     }
 
     notFollowingBack = [];
-    followingMap.forEach((href, user)=>{
+    followingMap.forEach((info, user)=>{
       if(!followersCombined.has(user)){
-        notFollowingBack.push({username:user, href});
+        notFollowingBack.push({username:user, href:info.href, timestamp:info.timestamp});
       }
     });
     notFollowingBack.sort((a,b)=> a.username.localeCompare(b.username));
@@ -774,8 +828,15 @@
     document.getElementById('sumNotBack').textContent = notFollowingBack.length;
 
     renderLedger(notFollowingBack);
+    renderComparison(notFollowingBack.map(e=>e.username));
     results.classList.add('show');
     results.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function formatFollowDate(ts){
+    if(!ts) return '<span style="color:var(--ink-faded)">—</span>';
+    const d = new Date(ts * 1000);
+    return d.toLocaleDateString('tr-TR', {day:'2-digit', month:'short', year:'numeric'});
   }
 
   function renderLedger(list){
@@ -792,11 +853,63 @@
       tr.innerHTML = `
         <td class="idx-col">${i+1}</td>
         <td class="user-col"><a href="${entry.href}" target="_blank" rel="noopener noreferrer">@${entry.username}</a></td>
+        <td style="font-size:12.5px; color:var(--ink-soft);">${formatFollowDate(entry.timestamp)}</td>
         <td><span class="stamp">Geri Takip Yok</span></td>
         <td class="action-col"><a class="profile-btn" href="${entry.href}" target="_blank" rel="noopener noreferrer">Profili Aç ↗</a></td>
       `;
       ledgerBody.appendChild(tr);
     });
+  }
+
+  // ---------- comparison with the previous check (stored on this device only) ----------
+
+  const SNAPSHOT_KEY = 'ig_audit_snapshot_v1';
+  const comparePanel = document.getElementById('comparePanel');
+
+  function loadSnapshot(){
+    try{
+      const raw = localStorage.getItem(SNAPSHOT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+
+  function saveSnapshot(usernames){
+    try{
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({date: Date.now(), usernames}));
+    }catch(e){ /* storage unavailable, silently skip */ }
+  }
+
+  function renderComparison(currentUsernames){
+    const prev = loadSnapshot();
+    if(!prev){
+      comparePanel.style.display = 'none';
+      saveSnapshot(currentUsernames);
+      return;
+    }
+
+    const prevSet = new Set(prev.usernames);
+    const currSet = new Set(currentUsernames);
+
+    const newlyNotFollowing = currentUsernames.filter(u => !prevSet.has(u));
+    const newlyFollowingBack = prev.usernames.filter(u => !currSet.has(u));
+
+    if(newlyNotFollowing.length === 0 && newlyFollowingBack.length === 0){
+      comparePanel.style.display = 'none';
+    } else {
+      const dateStr = new Date(prev.date).toLocaleDateString('tr-TR', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+      let html = '<h3>Son kontrolünüzden bu yana ne değişti?</h3>';
+      if(newlyNotFollowing.length){
+        html += `<div class="cp-row"><span class="cp-tag new-flag">${newlyNotFollowing.length} kişi</span> artık sizi geri takip etmiyor: ${newlyNotFollowing.map(u=>'@'+u).join(', ')}</div>`;
+      }
+      if(newlyFollowingBack.length){
+        html += `<div class="cp-row"><span class="cp-tag new-good">${newlyFollowingBack.length} kişi</span> artık sizi geri takip ediyor (veya takip listenizden çıktı): ${newlyFollowingBack.map(u=>'@'+u).join(', ')}</div>`;
+      }
+      html += `<div class="cp-meta">Karşılaştırma, ${dateStr} tarihli son kontrolünüze göre yapıldı. Bu bilgi yalnızca bu cihazda/tarayıcıda saklanır.</div>`;
+      comparePanel.innerHTML = html;
+      comparePanel.style.display = 'block';
+    }
+
+    saveSnapshot(currentUsernames);
   }
 
   // ---------- primary path: drag & drop the ZIP ----------
@@ -864,7 +977,7 @@
       followerTexts.forEach((text, i)=>{
         const json = parseJsonSafe(text, 'followers dosyası');
         const map = entriesToUserMap(extractEntries(json));
-        map.forEach((href, user)=> followersCombined.set(user, href));
+        map.forEach((info, user)=> followersCombined.set(user, info));
       });
 
       const followingJson = parseJsonSafe(followingText, 'following.json');
@@ -929,7 +1042,7 @@
         return entriesToUserMap(extractEntries(json));
       }));
       const followersCombined = new Map();
-      followerMaps.forEach(m => m.forEach((href, user) => followersCombined.set(user, href)));
+      followerMaps.forEach(m => m.forEach((info, user) => followersCombined.set(user, info)));
 
       const followingText = await readFileAsText(followingFile);
       const followingJson = parseJsonSafe(followingText, followingFile.name);
