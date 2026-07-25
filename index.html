@@ -704,14 +704,25 @@
     return [];
   }
 
+  function usernameFromHref(href){
+    if(!href) return null;
+    try{
+      const path = new URL(href).pathname.split('/').filter(Boolean);
+      return path.length ? path[path.length - 1] : null;
+    }catch(e){ return null; }
+  }
+
   function entriesToUserMap(entries){
     const map = new Map(); // username -> href
     for(const entry of entries){
       let list = entry.string_list_data;
-      if(!list && entry.value){ list = [entry]; } // fallback shape
+      if(!list && entry.value){ list = [entry]; }
       if(!Array.isArray(list)) continue;
       for(const item of list){
-        const username = item.value;
+        // Instagram's export is inconsistent between files: sometimes the
+        // username sits on item.value, sometimes only on entry.title,
+        // sometimes it can only be recovered from the href itself.
+        const username = item.value || entry.title || usernameFromHref(item.href);
         if(username && !map.has(username)){
           map.set(username, item.href || ('https://www.instagram.com/' + username));
         }
